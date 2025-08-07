@@ -1,8 +1,8 @@
-using MediatR;
+using DocumentProcessing.Application.Abstractions;
 
 namespace DocumentProcessing.Application.Commands;
 
-public record ProcessDocumentBatchCommand(string BlobUrl, string BatchId) : IRequest<ProcessDocumentBatchResult>;
+public record ProcessDocumentBatchCommand(string BlobUrl, string BatchId) : ICommand<ProcessDocumentBatchResult>;
 
 public record ProcessDocumentBatchResult
 {

@@ -1,23 +1,23 @@
-using MediatR;
 using Microsoft.Extensions.Logging;
 using DocumentProcessing.Application.Commands;
+using DocumentProcessing.Application.Abstractions;
 
 namespace DocumentProcessing.Application.Handlers;
 
-public class ProcessDocumentBatchCommandHandler : IRequestHandler<ProcessDocumentBatchCommand, ProcessDocumentBatchResult>
+public class ProcessDocumentBatchCommandHandler : ICommandHandler<ProcessDocumentBatchCommand, ProcessDocumentBatchResult>
 {
-    private readonly IMediator _mediator;
+    private readonly ICommandDispatcher _commandDispatcher;
     private readonly ILogger<ProcessDocumentBatchCommandHandler> _logger;
 
     public ProcessDocumentBatchCommandHandler(
-        IMediator mediator,
+        ICommandDispatcher commandDispatcher,
         ILogger<ProcessDocumentBatchCommandHandler> logger)
     {
-        _mediator = mediator;
+        _commandDispatcher = commandDispatcher;
         _logger = logger;
     }
 
-    public async Task<ProcessDocumentBatchResult> Handle(ProcessDocumentBatchCommand request, CancellationToken cancellationToken)
+    public async Task<ProcessDocumentBatchResult> HandleAsync(ProcessDocumentBatchCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -25,7 +25,7 @@ public class ProcessDocumentBatchCommandHandler : IRequestHandler<ProcessDocumen
                 request.BatchId, request.BlobUrl);
 
             // Step 1: Download and validate XML blob
-            var xmlResult = await _mediator.Send(
+            var xmlResult = await _commandDispatcher.DispatchAsync(
                 new DownloadAndValidateXmlCommand(request.BlobUrl, request.BatchId), 
                 cancellationToken);
 
@@ -37,7 +37,7 @@ public class ProcessDocumentBatchCommandHandler : IRequestHandler<ProcessDocumen
                 // Send XML validation errors to third party
                 if (xmlResult.DocumentBatch != null)
                 {
-                    await _mediator.Send(
+                    await _commandDispatcher.DispatchAsync(
                         new SendValidationResultCommand(xmlResult.DocumentBatch, new List<Domain.Entities.Document>()), 
                         cancellationToken);
                 }
@@ -53,7 +53,7 @@ public class ProcessDocumentBatchCommandHandler : IRequestHandler<ProcessDocumen
             var documentBatch = xmlResult.DocumentBatch;
 
             // Step 2: Process individual documents (decode and validate)
-            var documentsResult = await _mediator.Send(
+            var documentsResult = await _commandDispatcher.DispatchAsync(
                 new ProcessDocumentsCommand(documentBatch), 
                 cancellationToken);
 
@@ -75,7 +75,7 @@ public class ProcessDocumentBatchCommandHandler : IRequestHandler<ProcessDocumen
             var invalidDocuments = documentBatch.Documents.Where(d => !d.IsValid).ToList();
             if (invalidDocuments.Any())
             {
-                await _mediator.Send(
+                await _commandDispatcher.DispatchAsync(
                     new SendValidationResultCommand(documentBatch, invalidDocuments), 
                     cancellationToken);
             }
@@ -84,7 +84,7 @@ public class ProcessDocumentBatchCommandHandler : IRequestHandler<ProcessDocumen
             var validDocuments = documentBatch.Documents.Where(d => d.IsValid).ToList();
             if (validDocuments.Any())
             {
-                var printResult = await _mediator.Send(
+                var printResult = await _commandDispatcher.DispatchAsync(
                     new SendToPrintServiceCommand(validDocuments, request.BatchId), 
                     cancellationToken);
 

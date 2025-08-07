@@ -1,9 +1,9 @@
-using MediatR;
+using DocumentProcessing.Application.Abstractions;
 using DocumentProcessing.Domain.Entities;
 
 namespace DocumentProcessing.Application.Commands;
 
-public record DownloadAndValidateXmlCommand(string BlobUrl, string BatchId) : IRequest<DownloadAndValidateXmlResult>;
+public record DownloadAndValidateXmlCommand(string BlobUrl, string BatchId) : ICommand<DownloadAndValidateXmlResult>;
 
 public record DownloadAndValidateXmlResult
 {

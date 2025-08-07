@@ -1,9 +1,9 @@
-using MediatR;
+using DocumentProcessing.Application.Abstractions;
 using DocumentProcessing.Domain.Entities;
 
 namespace DocumentProcessing.Application.Commands;
 
-public record ProcessDocumentsCommand(DocumentBatch DocumentBatch) : IRequest<ProcessDocumentsResult>;
+public record ProcessDocumentsCommand(DocumentBatch DocumentBatch) : ICommand<ProcessDocumentsResult>;
 
 public record ProcessDocumentsResult
 {

@@ -1,13 +1,13 @@
-using MediatR;
 using Microsoft.Extensions.Logging;
 using DocumentProcessing.Application.Commands;
 using DocumentProcessing.Application.Interfaces;
+using DocumentProcessing.Application.Abstractions;
 using DocumentProcessing.Domain.Entities;
 using System.Xml.Linq;
 
 namespace DocumentProcessing.Application.Handlers;
 
-public class DownloadAndValidateXmlCommandHandler : IRequestHandler<DownloadAndValidateXmlCommand, DownloadAndValidateXmlResult>
+public class DownloadAndValidateXmlCommandHandler : ICommandHandler<DownloadAndValidateXmlCommand, DownloadAndValidateXmlResult>
 {
     private readonly IBlobStorageService _blobStorageService;
     private readonly IXmlValidationService _xmlValidationService;
@@ -23,7 +23,7 @@ public class DownloadAndValidateXmlCommandHandler : IRequestHandler<DownloadAndV
         _logger = logger;
     }
 
-    public async Task<DownloadAndValidateXmlResult> Handle(DownloadAndValidateXmlCommand request, CancellationToken cancellationToken)
+    public async Task<DownloadAndValidateXmlResult> HandleAsync(DownloadAndValidateXmlCommand request, CancellationToken cancellationToken)
     {
         try
         {
